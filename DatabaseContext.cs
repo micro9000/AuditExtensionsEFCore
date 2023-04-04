@@ -17,6 +17,8 @@ public class DatabaseContext : DbContext
       {
          entityType.AddISoftDeleteQueryFilter();
       }
+      
+      ConfigureManyToManyRelationships(modelBuilder);
    }
    
    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
@@ -29,6 +31,19 @@ public class DatabaseContext : DbContext
    {
       InterceptChanges();
       return base.SaveChanges(acceptAllChangesOnSuccess);
+   }
+   
+   private static void ConfigureManyToManyRelationships(ModelBuilder modelBuilder)
+   {
+      foreach(var type in typeof(DatabaseContext).Assembly.GetTypes())
+      {
+         var attribute = type.GetCustomAttributes(false).OfType<ManyToManyEntityAttribute>().SingleOrDefault();
+         if (attribute == null) continue;
+         
+         modelBuilder
+            .Entity(type)
+            .HasKey(attribute.FirstKey, attribute.SecondKey);
+      }
    }
    
    private void InterceptChanges()
