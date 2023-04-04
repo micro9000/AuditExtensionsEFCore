@@ -9,6 +9,16 @@ public class DatabaseContext : DbContext
    
    public DbSet<Audit> AuditRecords => Set<Audit>();
    
+   protected override void OnModelCreating (ModelBuilder modelBuilder)
+   {
+      base.OnModelCreating(modelBuilder);
+      
+      foreach(var entityType in modelBuilder.Model.GetEntityTypes().Where(t => typeof(Entity).IsAssignableFrom(t.ClrType)))
+      {
+         entityType.AddISoftDeleteQueryFilter();
+      }
+   }
+   
    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
    {
       InterceptChanges();
